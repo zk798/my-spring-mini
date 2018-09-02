@@ -13,6 +13,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.net.URL;
 import java.util.*;
 
@@ -20,8 +21,7 @@ import java.util.*;
  * 前端控制器
  * @author zrs
  */
-@WebServlet(loadOnStartup = 1, urlPatterns = "/*",
-        initParams = {@WebInitParam(name = "packagename", value = "com.zrs.demo")})
+@WebServlet(loadOnStartup = 1, urlPatterns = "/*",initParams = {@WebInitParam(name = "packagename", value = "com.zrs.demo")})
 public class DispatcherServlet extends HttpServlet {
 
     @Override
@@ -146,6 +146,30 @@ public class DispatcherServlet extends HttpServlet {
                     }
                 }
 
+                Class<?>[] parameterTypes = method.getParameterTypes();
+                for (int i = 0; i < parameterTypes.length; i++) {
+                    Class<?> parameterType = parameterTypes[i];
+                    if(parameterType == HttpServletRequest.class || parameterType == HttpServletResponse.class){
+                        parmMap.put(parameterType.getTypeName(),i);
+                    }
+                }
+
+
+//不行
+//                Parameter[] parameters = method.getParameters();
+//                for (int i = 0; i < parameters.length; i++) {
+//                    Parameter parameter = parameters[i];
+//                    if(parameter.isAnnotationPresent(MyRequestParameter.class)){
+//                        MyRequestParameter annotation = parameter.getAnnotation(MyRequestParameter.class);
+//                        if(!"".equals(annotation.value())) {
+//                            parmMap.put(annotation.value(), i);
+//                            continue;
+//                        }
+//                    }
+//                    parmMap.put(parameter.getName(),i);
+//                }
+
+
                 Handler handler = new Handler();
                 handler.setControl(instance);
                 handler.setMethod(method);
@@ -213,9 +237,7 @@ public class DispatcherServlet extends HttpServlet {
                     continue;
                 }
 
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
+            } catch (ClassNotFoundException | IllegalAccessException e) {
                 e.printStackTrace();
             } catch (InstantiationException e) {
                 e.printStackTrace();
